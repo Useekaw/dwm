@@ -31,7 +31,13 @@ static const char *colors[][3]      = {
 	//[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	//[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
 	[SchemeNorm] = { s_base1, s_base03, s_base03 },
-	[SchemeSel]  = { s_base0, s_base02, s_blue },
+	[SchemeSel]  = { s_blue, s_base03, s_blue },
+	//[SchemeSel]  = { s_base0, s_base02, s_blue },
+};
+
+static const char *nutags[][9]      = {
+    [SchemeNorm] = { "", "", "", "", "", "", "", "", "" },
+    [SchemeSel]  = { "", "", "", "", "", "", "", "", "" },
 };
 
 /* tagging */

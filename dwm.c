@@ -712,6 +712,12 @@ drawbar(Monitor *m)
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
 
+    const char *tag;
+    int invert;
+    // int fill;
+    int schemaIndex;
+    int hasClients;
+
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
@@ -726,13 +732,18 @@ drawbar(Monitor *m)
 	}
 	x = 0;
 	for (i = 0; i < LENGTH(tags); i++) {
-		w = TEXTW(tags[i]);
-		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
-		if (occ & 1 << i)
-			drw_rect(drw, x + boxs, boxs, boxw, boxw,
-				m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
-				urg & 1 << i);
+        schemaIndex = m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm;
+        hasClients = occ & 1 << i;
+        tag = nutags[hasClients ? SchemeSel : SchemeNorm][i];
+        invert = urg & 1 << i;
+
+        w = TEXTW(tag);
+		drw_setscheme(drw, scheme[schemaIndex]);
+		drw_text(drw, x, 0, w, bh, lrpad / 2, tag, invert);
+		//if (hasClients) {
+            //fill = m == selmon && selmon->sel && selmon->sel->tags & 1 << i;
+			//drw_rect(drw, x + boxs, boxs, boxw, boxw, fill,	invert);
+        //}
 		x += w;
 	}
 	w = blw = TEXTW(m->ltsymbol);
@@ -741,7 +752,8 @@ drawbar(Monitor *m)
 
 	if ((w = m->ww - sw - x) > bh) {
 		if (m->sel) {
-			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
+			drw_setscheme(drw, scheme[SchemeNorm]);
+			// drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
 			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
 			if (m->sel->isfloating)
 				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
