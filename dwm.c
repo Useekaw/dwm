@@ -1317,6 +1317,8 @@ resizeclient(Client *c, int x, int y, int w, int h)
     unsigned int gapincr;
     Client *nbc;
 
+	wc.border_width = c->bw;
+
     /* Get number of clients for the selected monitor */
     for (n = 0, nbc = nexttiled(selmon->clients); nbc; nbc = nexttiled(nbc->next), n++);
 
@@ -1340,14 +1342,6 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	c->oldw = c->w; c->w = wc.width = w - gapincr;
 	c->oldh = c->h; c->h = wc.height = h - gapincr;
 
-	wc.border_width = c->bw;
-	// if (((nexttiled(c->mon->clients) == c && !nexttiled(c->next))
-	    //|| &monocle == c->mon->lt[c->mon->sellt]->arrange)
-	    // && !c->isfullscreen && !c->isfloating) {
-		// c->w = wc.width += c->bw * 2;
-		// c->h = wc.height += c->bw * 2;
-		// wc.border_width = 0;
-	// }
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
 	XSync(dpy, False);
