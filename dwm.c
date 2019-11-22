@@ -60,7 +60,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeUrgent }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
@@ -713,7 +713,8 @@ drawbar(Monitor *m)
 	Client *c;
 
     const char *tag;
-    int invert;
+    int urgent;
+    int selected;
     // int fill;
     int schemaIndex;
     int hasClients;
@@ -732,14 +733,18 @@ drawbar(Monitor *m)
 	}
 	x = 0;
 	for (i = 0; i < LENGTH(tags); i++) {
-        schemaIndex = m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm;
+        selected = m->tagset[m->seltags] & 1 << i;
+        urgent = urg & 1 << i;
+            
+        schemaIndex = selected ? SchemeSel : SchemeNorm;
+        schemaIndex = urgent ? SchemeUrgent : schemaIndex;
+
         hasClients = occ & 1 << i;
         tag = nutags[hasClients ? SchemeSel : SchemeNorm][i];
-        invert = urg & 1 << i;
 
         w = TEXTW(tag);
 		drw_setscheme(drw, scheme[schemaIndex]);
-		drw_text(drw, x, 0, w, bh, lrpad / 2, tag, invert);
+		drw_text(drw, x, 0, w, bh, lrpad / 2, tag, 0);
 		//if (hasClients) {
             //fill = m == selmon && selmon->sel && selmon->sel->tags & 1 << i;
 			//drw_rect(drw, x + boxs, boxs, boxw, boxw, fill,	invert);
