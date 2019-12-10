@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <X11/XF86keysym.h>
 
 #define GRUVBOX_DARK
 
@@ -153,8 +154,16 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", dark0, "-nf", gray_244, "-sb", dark4, "-sf", light0, NULL };
 static const char *termcmd[]  = { "st", NULL };
 
+static const char *volup[]   = { "amixer", "sset", "Master", "5%+", NULL };
+static const char *voldown[] = { "amixer", "sset", "Master", "5%-", NULL };
+static const char *volmute[] = { "amixer", "sset", "Master", "toggle", NULL };
+
 static Key keys[] = {
 	/* modifier                     key        function        argument */
+    { 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = volup} },
+    { 0,                            XF86XK_AudioLowerVolume, spawn, {.v = voldown} },
+    { 0,                            XF86XK_AudioMute,        spawn, {.v = volmute} },
+
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
