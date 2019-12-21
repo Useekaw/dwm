@@ -9,8 +9,8 @@ static const unsigned int gappx     = 3;        /* gaps between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "Hack Nerd Font:size=9" };
-static const char dmenufont[]       = "Hack Nerd Font:size=9";
+static const char *fonts[]          = { "Hack Nerd Font:size=10" };
+static const char dmenufont[]       = "Hack Nerd Font:size=10";
 
 #ifdef SOLARIZED_DARK
 
@@ -154,9 +154,12 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", dark0, "-nf", gray_244, "-sb", dark4, "-sf", light0, NULL };
 static const char *termcmd[]  = { "st", NULL };
 
-static const char *volup[]   = { "amixer", "sset", "Master", "5%+", NULL };
-static const char *voldown[] = { "amixer", "sset", "Master", "5%-", NULL };
-static const char *volmute[] = { "amixer", "sset", "Master", "toggle", NULL };
+//static const char *volup[]   = { "amixer", "sset", "Master", "5%+", NULL };
+//static const char *voldown[] = { "amixer", "sset", "Master", "5%-", NULL };
+//static const char *volmute[] = { "amixer", "sset", "Master", "toggle", NULL };
+static const char *volup[]   = { "vol_up", NULL };
+static const char *voldown[] = { "vol_down", NULL };
+static const char *volmute[] = { "vol_toggle", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
