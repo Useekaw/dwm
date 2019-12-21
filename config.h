@@ -9,6 +9,7 @@ static const unsigned int gappx     = 3;        /* gaps between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
+static const int extrabar           = 1;        /* 0 means no extra bar */
 static const char *fonts[]          = { "Hack Nerd Font:size=10" };
 static const char dmenufont[]       = "Hack Nerd Font:size=10";
 
