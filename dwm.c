@@ -146,7 +146,7 @@ typedef struct {
     int y;
     int show;
     Window win;
-    char text[256];
+    char text[3][128];
 } Bar;
 
 /* function declarations */
@@ -734,7 +734,7 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		sw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+		sw = TEXTW(stext) - lrpad + lrpad / 2; 
 		drw_text(drw, m->ww - sw, 0, sw, bh, 0, stext, 0);
 	}
 
@@ -780,8 +780,16 @@ drawbar(Monitor *m)
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+
     drw_setscheme(drw, scheme[SchemeNorm]);
-    drw_text(drw, 0, 0, mons->ww, bh, lrpad / 2, eb.text, 0);
+    // draw left bar section
+    drw_text(drw, 0, 0, m->ww, bh, lrpad / 2, eb.text[0], 0);
+    // draw center bar section
+    w = TEXTW(eb.text[1]) - lrpad;
+    drw_text(drw, (m->ww - w) / 2, 0, w, bh, 0, eb.text[1], 0);
+    // draw right bar section
+    w = TEXTW(eb.text[2]) - lrpad + lrpad / 2;
+    drw_text(drw, m->ww - w, 0, w, bh, 0, eb.text[2], 0);
     drw_map(drw, eb.win, 0, 0, mons->ww, bh);
 }
 
@@ -2071,20 +2079,33 @@ void
 updatestatus(void)
 {
     char text[512];
+    char *e;
+    int i = 0;
+
+    eb.text[0][0] = '\0';
+    eb.text[1][0] = '\0';
+    eb.text[2][0] = '\0';
+
 	if (!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
 		strcpy(stext, "dwm-"VERSION);
-        eb.text[0] = '\0';
     }
+    //else {
+        //strcpy(stext, "FUCK");
+    //}
     else {
-        char *e = strchr(text, ';');
-        if (e) {
-            *e = '\0';
-            e++;
-            strncpy(eb.text, e, sizeof(eb.text)-1);
+        e = strtok(text, ";");
+        // first part should be the "normal" status
+        if (e)
+            strncpy(stext, e, strlen(e) + 1);
+        else 
+            stext[0] = '\0';
+        // next there should be the parts of the "extra" bar
+        e = strtok(NULL, ";");
+        while (e && i < sizeof(eb.text)) {
+            strncpy(eb.text[i], e, strlen(e) + 1);
+            e = strtok(NULL, ";");
+            i++;
         }
-        else
-            eb.text[0] = '\0';
-        strncpy(stext, text, sizeof(stext)-1);
     }
 	drawbar(selmon);
 }
