@@ -142,6 +142,13 @@ typedef struct {
 	int monitor;
 } Rule;
 
+typedef struct {
+    int y;
+    int show;
+    Window win;
+    char text[3][128];
+} Bar;
+
 /* function declarations */
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
@@ -213,6 +220,7 @@ static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *);
 static void togglebar(const Arg *arg);
+static void toggleextrabar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
@@ -270,6 +278,7 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
+static Bar eb;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -495,6 +504,8 @@ cleanup(void)
 		while (m->stack)
 			unmanage(m->stack, 0);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
+    XUnmapWindow(dpy, eb.win);
+    XDestroyWindow(dpy, eb.win);
 	while (mons)
 		cleanupmon(mons);
 	for (i = 0; i < CurLast; i++)
@@ -579,6 +590,7 @@ configurenotify(XEvent *e)
 			updatebars();
 			for (m = mons; m; m = m->next) {
 				XMoveResizeWindow(dpy, m->barwin, m->wx, m->by, m->ww, bh);
+                XMoveResizeWindow(dpy, eb.win, mons->wx, eb.y, mons->ww, bh);
 			}
 			focus(NULL);
 			arrange(NULL);
@@ -722,7 +734,7 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeNorm]);
-		sw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+		sw = TEXTW(stext) - lrpad + lrpad / 2; 
 		drw_text(drw, m->ww - sw, 0, sw, bh, 0, stext, 0);
 	}
 
@@ -768,6 +780,17 @@ drawbar(Monitor *m)
 		}
 	}
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
+
+    drw_setscheme(drw, scheme[SchemeNorm]);
+    // draw left bar section
+    drw_text(drw, 0, 0, m->ww, bh, lrpad / 2, eb.text[0], 0);
+    // draw center bar section
+    w = TEXTW(eb.text[1]) - lrpad;
+    drw_text(drw, (m->ww - w) / 2, 0, w, bh, 0, eb.text[1], 0);
+    // draw right bar section
+    w = TEXTW(eb.text[2]) - lrpad + lrpad / 2;
+    drw_text(drw, m->ww - w, 0, w, bh, 0, eb.text[2], 0);
+    drw_map(drw, eb.win, 0, 0, mons->ww, bh);
 }
 
 void
@@ -1590,6 +1613,7 @@ setup(void)
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
 	bh = drw->fonts->h + 2;
+    eb.show = extrabar;
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
@@ -1750,6 +1774,17 @@ togglebar(const Arg *arg)
 }
 
 void
+toggleextrabar(const Arg *arg)
+{
+    if (selmon == mons) {
+        eb.show = !eb.show;
+        updatebarpos(selmon);
+        XMoveResizeWindow(dpy, eb.win, selmon->wx, eb.y, selmon->ww, bh);
+        arrange(selmon);
+    }
+}
+
+void
 togglefloating(const Arg *arg)
 {
 	if (!selmon->sel)
@@ -1860,6 +1895,12 @@ updatebars(void)
 		XMapRaised(dpy, m->barwin);
 		XSetClassHint(dpy, m->barwin, &ch);
 	}
+    if (!eb.win) {
+        eb.win = XCreateWindow(dpy, root, mons->wx, eb.y, mons->ww, bh, 0, DefaultDepth(dpy, screen), CopyFromParent, DefaultVisual(dpy, screen), CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
+        XDefineCursor(dpy, eb.win, cursor[CurNormal]->cursor);
+        XMapRaised(dpy, eb.win);
+        XSetClassHint(dpy, eb.win, &ch);
+    }
 }
 
 void
@@ -1873,6 +1914,13 @@ updatebarpos(Monitor *m)
 		m->wy = m->topbar ? m->wy + bh : m->wy;
 	} else
 		m->by = -bh;
+    if (m == mons && eb.show) {
+        m->wh -= bh;
+        eb.y = topbar ? m->wy + m->wh : m->wy;
+        m->wy = m->topbar ? m->wy : m->wy + bh;
+    }
+    else
+        eb.y = -bh;
 }
 
 void
@@ -2030,8 +2078,35 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
-	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
+    char text[512];
+    char *e;
+    int i = 0;
+
+    eb.text[0][0] = '\0';
+    eb.text[1][0] = '\0';
+    eb.text[2][0] = '\0';
+
+	if (!gettextprop(root, XA_WM_NAME, text, sizeof(text))) {
 		strcpy(stext, "dwm-"VERSION);
+    }
+    //else {
+        //strcpy(stext, "FUCK");
+    //}
+    else {
+        e = strtok(text, ";");
+        // first part should be the "normal" status
+        if (e)
+            strncpy(stext, e, strlen(e) + 1);
+        else 
+            stext[0] = '\0';
+        // next there should be the parts of the "extra" bar
+        e = strtok(NULL, ";");
+        while (e && i < sizeof(eb.text)) {
+            strncpy(eb.text[i], e, strlen(e) + 1);
+            e = strtok(NULL, ";");
+            i++;
+        }
+    }
 	drawbar(selmon);
 }
 
