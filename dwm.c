@@ -752,6 +752,7 @@ drawbar(Monitor *m)
         schemaIndex = urgent ? SchemeUrgent : schemaIndex;
 
         hasClients = occ & 1 << i;
+        if (!hasClients && i > alwaysvisibletags - 1) continue;
         tag = nutags[hasClients ? SchemeSel : SchemeNorm][i];
 
         w = TEXTW(tag);

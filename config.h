@@ -12,6 +12,7 @@ static const int topbar             = 1;        /* 0 means bottom bar */
 static const int extrabar           = 1;        /* 0 means no extra bar */
 static const char *fonts[]          = { "Hack Nerd Font:size=10" };
 static const char dmenufont[]       = "Hack Nerd Font:size=10";
+static const int alwaysvisibletags  = 4;        /* number of tags always visible */
 
 #ifdef SOLARIZED_DARK
 
