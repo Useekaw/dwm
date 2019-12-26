@@ -1,4 +1,4 @@
 #!/bin/sh
 
 amixer sset Master toggle -M
-command -v dwmblocks_sig_volume >\dev\null 2>&1
+command -v dwmblocks_sig_volume >/dev/null 2>&1
