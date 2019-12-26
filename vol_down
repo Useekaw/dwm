@@ -1,0 +1,4 @@
+#!/bin/sh
+
+amixer sset Master 5%- -M
+command -v dwmblocks_sig_volume >\dev\null 2>&1
